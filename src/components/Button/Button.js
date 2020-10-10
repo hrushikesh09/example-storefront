@@ -2,7 +2,7 @@ import React, { Component } from "react";
 import styled from "styled-components";
 
 const ButtonStyle = styled.div`
-  /* This renders the buttons above... Edit me! */
+    border-radius: 2px;
   display: inline-block;
  -webkit-appearance: none;
     box-shadow: none;
@@ -28,12 +28,19 @@ line-height: 1.4em;
     background: #15253B;
     color: white;
   `}
+${props => props.isFullWidth && `
+    width: 90%;
+  `}
 
 &:hover {
     background: white;
     color: rgb(0, 0, 0);
      ${props => props.primary && `
     background: #ECC2AC;
+    color: #15253B;
+  `}
+   ${props => props.secondary && `
+    background: #FFFFFF;
     color: #15253B;
   `}
   }
@@ -44,13 +51,13 @@ line-height: 1.4em;
 
 class Button extends Component {
 
-  render() {
-    const {href, target, rel, title, primary} = this.props;
-    return (
-      <ButtonStyle {... {href, target, rel, primary}}>
-        {title}
-      </ButtonStyle>
-    )
-  }
+    render() {
+        const {href, target, rel, title, primary, secondary, onClick, style, isFullWidth} = this.props;
+        return (
+            <ButtonStyle {... {href, target, rel, primary, secondary, onClick, style, isFullWidth}}>
+                {title}
+            </ButtonStyle>
+        )
+    }
 }
 export default Button

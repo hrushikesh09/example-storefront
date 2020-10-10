@@ -1,26 +1,26 @@
 /* eslint-disable react/no-multi-comp */
-import React, { Fragment, Component } from "react";
+import React, {Fragment, Component} from "react";
 import PropTypes from "prop-types";
-import { isEqual } from "lodash";
-import { observer } from "mobx-react";
+import {isEqual} from "lodash";
+import {observer} from "mobx-react";
 import styled from "styled-components";
 import Actions from "@reactioncommerce/components/CheckoutActions/v1";
 import ShippingAddressCheckoutAction from "@reactioncommerce/components/ShippingAddressCheckoutAction/v1";
 import FulfillmentOptionsCheckoutAction from "@reactioncommerce/components/FulfillmentOptionsCheckoutAction/v1";
 import PaymentsCheckoutAction from "@reactioncommerce/components/PaymentsCheckoutAction/v1";
 import FinalReviewCheckoutAction from "@reactioncommerce/components/FinalReviewCheckoutAction/v1";
-import { addTypographyStyles } from "@reactioncommerce/components/utils";
+import {addTypographyStyles} from "@reactioncommerce/components/utils";
 import withAddressValidation from "containers/address/withAddressValidation";
 import Dialog from "@material-ui/core/Dialog";
 import PageLoading from "components/PageLoading";
-import { Router } from "routes";
+import {Router} from "routes";
 import track from "lib/tracking/track";
 import TRACKING from "lib/tracking/constants";
 import trackCheckout from "lib/tracking/trackCheckout";
 import trackOrder from "lib/tracking/trackOrder";
 import trackCheckoutStep from "lib/tracking/trackCheckoutStep";
 import calculateRemainderDue from "lib/utils/calculateRemainderDue";
-import { placeOrder } from "../../containers/order/mutations.gql";
+import {placeOrder} from "../../containers/order/mutations.gql";
 
 const {
   CHECKOUT_STARTED,
@@ -77,24 +77,24 @@ export default class CheckoutActions extends Component {
 
   componentDidMount() {
     this._isMounted = true;
-    const { cart } = this.props;
+    const {cart} = this.props;
 
     // Track start of checkout process
-    this.trackCheckoutStarted({ cart, action: CHECKOUT_STARTED });
+    this.trackCheckoutStarted({cart, action: CHECKOUT_STARTED});
 
-    const { checkout: { fulfillmentGroups } } = cart;
+    const {checkout: {fulfillmentGroups}} = cart;
     const [fulfillmentGroup] = fulfillmentGroups;
 
     // Track the first step, "Enter a shipping address" when the page renders,
     // as it will be expanded by default, only record this event when the
     // shipping address has not yet been set.
     if (!fulfillmentGroup.shippingAddress) {
-      this.trackAction(this.buildData({ action: CHECKOUT_STEP_VIEWED, step: 1 }));
+      this.trackAction(this.buildData({action: CHECKOUT_STEP_VIEWED, step: 1}));
     }
   }
 
-  componentDidUpdate({ addressValidationResults: prevAddressValidationResults }) {
-    const { addressValidationResults } = this.props;
+  componentDidUpdate({addressValidationResults: prevAddressValidationResults}) {
+    const {addressValidationResults} = this.props;
     if (
       addressValidationResults &&
       prevAddressValidationResults &&
@@ -109,15 +109,18 @@ export default class CheckoutActions extends Component {
   }
 
   @trackCheckoutStep()
-  trackAction() {}
+  trackAction() {
+  }
 
   @trackCheckout()
-  trackCheckoutStarted() {}
+  trackCheckoutStarted() {
+  }
 
   @trackOrder()
-  trackOrder() {}
+  trackOrder() {
+  }
 
-  buildData = ({ step, action }) => ({
+  buildData = ({step, action}) => ({
     action,
     payment_method: this.paymentMethod, // eslint-disable-line camelcase
     shipping_method: this.shippingMethod, // eslint-disable-line camelcase
@@ -125,8 +128,8 @@ export default class CheckoutActions extends Component {
   });
 
   get shippingMethod() {
-    const { checkout: { fulfillmentGroups } } = this.props.cart;
-    const { selectedFulfillmentOption } = fulfillmentGroups[0];
+    const {checkout: {fulfillmentGroups}} = this.props.cart;
+    const {selectedFulfillmentOption} = fulfillmentGroups[0];
     return selectedFulfillmentOption ? selectedFulfillmentOption.fulfillmentMethod.displayName : null;
   }
 
@@ -136,16 +139,16 @@ export default class CheckoutActions extends Component {
   }
 
   setShippingAddress = async (address) => {
-    const { checkoutMutations: { onSetShippingAddress } } = this.props;
+    const {checkoutMutations: {onSetShippingAddress}} = this.props;
     delete address.isValid;
-    const { data, error } = await onSetShippingAddress(address);
+    const {data, error} = await onSetShippingAddress(address);
 
     if (data && !error) {
       // track successfully setting a shipping address
-      this.trackAction(this.buildData({ action: CHECKOUT_STEP_COMPLETED, step: 1 }));
+      this.trackAction(this.buildData({action: CHECKOUT_STEP_COMPLETED, step: 1}));
 
       // The next step will automatically be expanded, so lets track that
-      this.trackAction(this.buildData({ action: CHECKOUT_STEP_VIEWED, step: 2 }));
+      this.trackAction(this.buildData({action: CHECKOUT_STEP_VIEWED, step: 2}));
 
       if (this._isMounted) {
         this.setState({
@@ -158,32 +161,32 @@ export default class CheckoutActions extends Component {
   };
 
   handleValidationErrors() {
-    const { addressValidationResults } = this.props;
-    const { validationErrors } = addressValidationResults || [];
+    const {addressValidationResults} = this.props;
+    const {validationErrors} = addressValidationResults || [];
     const shippingAlert =
       validationErrors && validationErrors.length ? {
         alertType: validationErrors[0].type,
         title: validationErrors[0].summary,
         message: validationErrors[0].details
       } : null;
-    this.setState({ actionAlerts: { 1: shippingAlert } });
+    this.setState({actionAlerts: {1: shippingAlert}});
   }
 
   setShippingMethod = async (shippingMethod) => {
-    const { checkoutMutations: { onSetFulfillmentOption } } = this.props;
-    const { checkout: { fulfillmentGroups } } = this.props.cart;
+    const {checkoutMutations: {onSetFulfillmentOption}} = this.props;
+    const {checkout: {fulfillmentGroups}} = this.props.cart;
     const fulfillmentOption = {
       fulfillmentGroupId: fulfillmentGroups[0]._id,
       fulfillmentMethodId: shippingMethod.selectedFulfillmentOption.fulfillmentMethod._id
     };
 
-    const { data, error } = await onSetFulfillmentOption(fulfillmentOption);
+    const {data, error} = await onSetFulfillmentOption(fulfillmentOption);
     if (data && !error) {
       // track successfully setting a shipping method
-      this.trackAction(this.buildData({ action: CHECKOUT_STEP_COMPLETED, step: 2 }));
+      this.trackAction(this.buildData({action: CHECKOUT_STEP_COMPLETED, step: 2}));
 
       // The next step will automatically be expanded, so lets track that
-      this.trackAction(this.buildData({ action: CHECKOUT_STEP_VIEWED, step: 3 }));
+      this.trackAction(this.buildData({action: CHECKOUT_STEP_VIEWED, step: 3}));
     }
   };
 
@@ -198,10 +201,10 @@ export default class CheckoutActions extends Component {
     });
 
     // Track successfully setting a payment method
-    this.trackAction(this.buildData({ action: PAYMENT_INFO_ENTERED, step: 3 }));
+    this.trackAction(this.buildData({action: PAYMENT_INFO_ENTERED, step: 3}));
 
     // The next step will automatically be expanded, so lets track that
-    this.trackAction(this.buildData({ action: CHECKOUT_STEP_VIEWED, step: 4 }));
+    this.trackAction(this.buildData({action: CHECKOUT_STEP_VIEWED, step: 4}));
   };
 
   handlePaymentsReset = () => {
@@ -209,13 +212,13 @@ export default class CheckoutActions extends Component {
   }
 
   buildOrder = async () => {
-    const { cart, cartStore, orderEmailAddress } = this.props;
+    const {cart, cartStore, orderEmailAddress} = this.props;
     const cartId = cartStore.hasAccountCart ? cartStore.accountCartId : cartStore.anonymousCartId;
-    const { checkout } = cart;
+    const {checkout} = cart;
 
     const fulfillmentGroups = checkout.fulfillmentGroups.map((group) => {
-      const { data } = group;
-      const { selectedFulfillmentOption } = group;
+      const {data} = group;
+      const {selectedFulfillmentOption} = group;
 
       const items = cart.items.map((item) => ({
         addedAt: item.addedAt,
@@ -242,22 +245,66 @@ export default class CheckoutActions extends Component {
       shopId: cart.shop._id
     };
 
-    return this.setState({ isPlacingOrder: true }, () => this.placeOrder(order));
+    return this.setState({isPlacingOrder: true}, () => this.placeOrder(order));
   };
 
-  placeOrder = async (order) => {
-    const { cartStore, clearAuthenticatedUsersCart, client: apolloClient } = this.props;
+  openRazorPay = async (orderId, payments, token, referenceId) => {
+    console.log(orderId, token, payments);
+    const options = {
+      key: "rzp_test_FV4Vqc9whWs2uV",
+      name: "YOMAN",
+      amount: payments[0].amount * 100,
+      description: "PAY HERE",
+      order_id: orderId,
+      handler: async (response) => {
+        try {
+          const transactionId = response.razorpay_payment_id;
+          console.log(transactionId);
+          Router.pushRoute("checkoutComplete", {orderId: referenceId, token});
+          // Send user to order confirmation page
+          // Router.pushRoute("checkoutComplete", {orderId: orders[0].referenceId, token});
+        } catch (error) {
+          console.log(error);
+        }
+      },
+      theme: {
+        color: "#686CFD",
+      },
+    };
 
+    const rzp1 = new window.Razorpay(options);
+
+    rzp1.open();
+  }
+
+  placeOrder = async (order) => {
+    const {cartStore, clearAuthenticatedUsersCart, client: apolloClient} = this.props;
     // Payments can have `null` amount to mean "remaining".
+
     let remainingAmountDue = order.fulfillmentGroups.reduce((sum, group) => sum + group.totalPrice, 0);
-    const payments = cartStore.checkoutPayments.map(({ payment }) => {
+    const payments = cartStore.checkoutPayments.map(({payment}) => {
       const amount = payment.amount ? Math.min(payment.amount, remainingAmountDue) : remainingAmountDue;
       remainingAmountDue -= amount;
-      return { ...payment, amount };
+      const {shopId} = order;
+      const data = {
+        fullName: 'Shubham Sevda'
+      }
+      // const email = 'sevdashubham@gmail.com';
+      //
+      // const currencyCode = 'INR';
+      // const accountId = 'JXQzEXiaq5d5pTakH';
+      return {...payment, amount, data};
+    });
+    // const paymentID = await this.openRazorPay(order, payments, cartStore, clearAuthenticatedUsersCart, apolloClient);
+    console.log({
+      input: {
+        order,
+        payments
+      }
     });
 
     try {
-      const { data } = await apolloClient.mutate({
+      const {data} = await apolloClient.mutate({
         mutation: placeOrder,
         variables: {
           input: {
@@ -276,14 +323,17 @@ export default class CheckoutActions extends Component {
       // Also destroy the collected and cached payment input
       cartStore.resetCheckoutPayments();
 
-      const { placeOrder: { orders, token } } = data;
+      const {placeOrder: {orders, token}} = data;
 
-      this.trackAction(this.buildData({ action: CHECKOUT_STEP_COMPLETED, step: 4 }));
+      this.trackAction(this.buildData({action: CHECKOUT_STEP_COMPLETED, step: 4}));
 
-      this.trackOrder({ action: ORDER_COMPLETED, orders });
+      this.trackOrder({action: ORDER_COMPLETED, orders});
 
+      console.log(data);
+
+      this.openRazorPay(orders[0].payments[0].transactionId, payments, token, orders[0].referenceId);
       // Send user to order confirmation page
-      Router.pushRoute("checkoutComplete", { orderId: orders[0].referenceId, token });
+      //
     } catch (error) {
       if (this._isMounted) {
         this.setState({
@@ -302,11 +352,11 @@ export default class CheckoutActions extends Component {
   };
 
   renderPlacingOrderOverlay = () => {
-    const { isPlacingOrder } = this.state;
+    const {isPlacingOrder} = this.state;
 
     return (
       <Dialog fullScreen disableBackdropClick={true} disableEscapeKeyDown={true} open={isPlacingOrder}>
-        <PageLoading delay={0} message="Placing your order..." />
+        <PageLoading delay={0} message="Placing your order..."/>
       </Dialog>
     );
   };
@@ -320,12 +370,12 @@ export default class CheckoutActions extends Component {
       paymentMethods
     } = this.props;
 
-    const { checkout: { fulfillmentGroups, summary }, items } = cart;
-    const { actionAlerts, hasPaymentError } = this.state;
+    const {checkout: {fulfillmentGroups, summary}, items} = cart;
+    const {actionAlerts, hasPaymentError} = this.state;
     const [fulfillmentGroup] = fulfillmentGroups;
 
     // Order summary
-    const { fulfillmentTotal, itemTotal, surchargeTotal, taxTotal, total } = summary;
+    const {fulfillmentTotal, itemTotal, surchargeTotal, taxTotal, total} = summary;
     const checkoutSummary = {
       displayShipping: fulfillmentTotal && fulfillmentTotal.displayAmount,
       displaySubtotal: itemTotal.displayAmount,
@@ -413,7 +463,7 @@ export default class CheckoutActions extends Component {
     return (
       <Fragment>
         {this.renderPlacingOrderOverlay()}
-        <Actions actions={actions} />
+        <Actions actions={actions}/>
       </Fragment>
     );
   }

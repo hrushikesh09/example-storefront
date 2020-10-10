@@ -1,92 +1,132 @@
 import React, { Component } from "react";
-import PropTypes from "prop-types";
-import { inject } from "mobx-react";
-import AppBar from "@material-ui/core/AppBar";
-import Hidden from "@material-ui/core/Hidden";
-import Toolbar from "@material-ui/core/Toolbar";
-import Typography from "@material-ui/core/Typography";
-import { withStyles } from "@material-ui/core/styles";
-import { NavigationDesktop } from "components/NavigationDesktop";
-import { NavigationMobile, NavigationToggleMobile } from "components/NavigationMobile";
-import AccountDropdown from "components/AccountDropdown";
-import ShopLogo from "@reactioncommerce/components/ShopLogo/v1";
-import Link from "components/Link";
-import MiniCart from "components/MiniCart";
+import styled from "styled-components";
+import Grid from "@material-ui/core/Grid";
+import Button from "../Button";
+import { Link, Router } from '../../routes';
+import { withRouter } from 'next/router';
+import Hidden from '@material-ui/core/Hidden';
+import Drawer from '@material-ui/core/Drawer';
+import List from '@material-ui/core/List';
+import Divider from '@material-ui/core/Divider';
+import ListItem from '@material-ui/core/ListItem';
+import ListItemText from '@material-ui/core/ListItemText';
 
-const styles = (theme) => ({
-  appBar: {
-    backgroundColor: theme.palette.reaction.white,
-    borderBottom: `solid 1px ${theme.palette.reaction.black05}`,
-    color: theme.palette.reaction.coolGrey500
-  },
-  controls: {
-    alignItems: "inherit",
-    display: "inherit",
-    flex: 1
-  },
-  title: {
-    color: theme.palette.reaction.reactionBlue,
-    marginRight: theme.spacing.unit,
-    borderBottom: `solid 5px ${theme.palette.reaction.reactionBlue200}`
-  },
-  toolbar: {
-    alignItems: "center",
-    display: "flex",
-    justifyContent: "space-between"
+const StyledTitle = styled.h1`
+cursor: pointer;
+font-family: 'Poppins', sans-serif;
+font-style: normal;
+font-weight: 500;
+font-size: 1em;
+text-align: center;
+margin: 0;
+letter-spacing: 0.02em;
+
+color: #15253B;
+&:hover {
+   color: ${props => props.isLanding ? '#ffffff' : '#ECC2AC'}
   }
-});
+`
 
-@withStyles(styles, { name: "SkHeader" })
-@inject("uiStore")
+
+const StyledHeader = styled.div`
+padding: 1em 2em;
+background: ${props => (props.isLanding || props.isHairKit) ? '#ECC2AC' : '#ffffff'};
+
+`
+
+const StyledLogo = styled.img`
+height: 100%;
+width: 4.5em;
+`
+
+
+const StyledLogo2 = styled.img`
+height: 100%;
+width: 3.5em;
+float: right;
+`
+
 class Header extends Component {
-  static propTypes = {
-    classes: PropTypes.object,
-    shop: PropTypes.shape({
-      name: PropTypes.string.isRequired
-    }),
-    uiStore: PropTypes.shape({
-      toggleMenuDrawerOpen: PropTypes.func.isRequired
-    }).isRequired,
-    viewer: PropTypes.object
-  };
 
-  static defaultProps = {
-    classes: {}
-  };
+    state = {
+        isDrawerOpen: false,
+        headerLinks: [
+            {
+                title: 'OUR OFFERING',
+                href: '/our-offering'
+            }, {
+                title: 'HAIR LOSS 101',
+                href: '/hair-loss'
+            }, {
+                title: 'LEARN',
+                href: '/learn'
+            }, {
+                title: 'REVIEW',
+                href: '/review'
+            }, {
+                title: 'SIGN IN',
+                href: '/login'
+            }
+        ]
+    }
 
-  handleNavigationToggleClick = () => {
-    this.props.uiStore.toggleMenuDrawerOpen();
-  };
+    toggleDrawer = () => {
+        const { isDrawerOpen } = this.state;
+        this.setState({
+            isDrawerOpen: !isDrawerOpen
+        })
+    }
 
-  render() {
-    const { classes: { appBar, controls, toolbar, title }, shop } = this.props;
+    handleRoute = (route) => {
 
-    return (
-      <AppBar position="static" elevation={0} className={appBar}>
-        <Toolbar className={toolbar}>
-          <Hidden mdUp>
-            <NavigationToggleMobile onClick={this.handleNavigationToggleClick} />
-          </Hidden>
+        this.toggleDrawer();
+        Router.pushRoute(route);
+    }
 
-          <div className={controls}>
-            <Typography className={title} color="inherit" variant="h6">
-              <Link route="/">
-                {shop ? <ShopLogo shopName={shop.name} /> : "Example Storefront"}
-              </Link>
-            </Typography>
-
-            <Hidden smDown initialWidth={"md"}>
-              <NavigationDesktop />
-            </Hidden>
-          </div>
-
-          <AccountDropdown />
-          <MiniCart />
-        </Toolbar>
-        <NavigationMobile />
-      </AppBar>
-    );
-  }
+    render() {
+        const { headerLinks, isDrawerOpen } = this.state;
+        const { router } = this.props;
+        const isLanding = (router.pathname === '/landing');
+        const isHairKit = (router.pathname === '/hair-kit1');
+        return (
+            <StyledHeader isLanding={isLanding} isHairKit={isHairKit}>
+                <Grid container direction="row" justify="space-between" alignItems="center">
+                    <Grid item xs={5}>
+                        <Link route={'/landing'}>
+                            <StyledLogo src={isLanding || isHairKit ? '../static/assets/logo/logo-header1@3x.png' : '../static/assets/logo/logo-footer1@3x.png'} />
+                        </Link>
+                    </Grid>
+                    <Grid item xs={7} direction="row">
+                        <Hidden mdDown>
+                            <Grid container justify="space-between" direction="row" alignItems="center">
+                                {headerLinks.map(link => {
+                                    return (
+                                        <Grid item>
+                                            <Link route={link.href}><StyledTitle isLanding={isLanding}>{link.title}</StyledTitle></Link>
+                                        </Grid>
+                                    )
+                                })}
+                                <Button title="GET STARTED" primary secondary={isLanding} onClick={() => Router.pushRoute('/get-started')} />
+                            </Grid>
+                        </Hidden>
+                        <Hidden lgUp>
+                            <StyledLogo2 src={'../static/assets/landing/hamburger-menu-512.png'} onClick={this.toggleDrawer}/>
+                        </Hidden>
+                    </Grid>
+                </Grid>
+                <Drawer anchor={'right'} open={isDrawerOpen} onClose={this.toggleDrawer}>
+                    <List style={{paddingTop: 50}}>
+                        {headerLinks.map((link, index) => (
+                            <ListItem button key={link.title} onClick={() => this.handleRoute(link.href)}>
+                                <ListItemText primary={link.title} />
+                            </ListItem>
+                        ))}
+                    </List>
+                    <Divider />
+                </Drawer>
+            </StyledHeader>
+        )
+    }
 }
 
-export default Header;
+export default withRouter(Header)

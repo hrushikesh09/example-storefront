@@ -140,6 +140,7 @@ fragment OrderCommon on Order {
     type
   }
   payments {
+    transactionId
     _id
     amount {
       displayAmount

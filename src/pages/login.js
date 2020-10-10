@@ -8,6 +8,7 @@ import ShopLogo from "@reactioncommerce/components/ShopLogo/v1";
 import withCart from "containers/cart/withCart";
 import Entry from "components/Entry";
 import Link from "components/Link";
+import Header from "../components/Header";
 
 import ChevronLeftIcon from "mdi-material-ui/ChevronLeft";
 
@@ -119,7 +120,7 @@ export default class Login extends Component {
         />
         <CheckoutTopHat checkoutMessage="Free Shipping + Free Returns" />
         <div className={classes.root}>
-          {this.renderHeader()}
+          <Header/>
           <main className={classes.main}>{this.renderEntry()}</main>
         </div>
       </Fragment>
