@@ -118,7 +118,6 @@ export default class Login extends Component {
           title={`Login | ${shop && shop.name}`}
           meta={[{ name: "description", content: shop && shop.description }]}
         />
-        <CheckoutTopHat checkoutMessage="Free Shipping + Free Returns" />
         <div className={classes.root}>
           <Header/>
           <main className={classes.main}>{this.renderEntry()}</main>

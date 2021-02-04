@@ -5,7 +5,9 @@ import { withStyles } from "@material-ui/core/styles";
 import Typography from "@material-ui/core/Typography";
 import Grid from "@material-ui/core/Grid";
 import GuestForm from "@reactioncommerce/components/GuestForm/v1";
-import Button from "@reactioncommerce/components/Button/v1";
+// import Button from "@reactioncommerce/components/Button/v1";
+import Button from '../Button'
+import {inject} from "mobx-react";
 
 // flex wrapper jss mixin
 const flexWrapper = () => ({
@@ -25,6 +27,9 @@ const styles = (theme) => ({
       paddingRight: theme.spacing.unit * 8
     }
   },
+  buttonTop: {
+    marginTop: theme.spacing.unit * 2,
+  },
   loginButton: {
     marginTop: theme.spacing.unit * 3
   },
@@ -42,6 +47,7 @@ const styles = (theme) => ({
 });
 
 @withStyles(styles, { withTheme: true, name: "SkEntry" })
+@inject("authStore")
 export default class Entry extends Component {
   static propTypes = {
     classes: PropTypes.object,
@@ -62,21 +68,29 @@ export default class Entry extends Component {
   };
 
   render() {
-    const { classes, onLoginButtonClick, onRegisterButtonClick, setEmailOnAnonymousCart } = this.props;
+    const { classes, onLoginButtonClick, onRegisterButtonClick, setEmailOnAnonymousCart, authStore } = this.props;
+    const {account} = authStore;
     return (
       <Grid container>
         <Grid item xs={12} md={7}>
-          <div className={classes.loginWrapper}>
+          {authStore.isAuthenticated && <div className={classes.loginWrapper}>
+            <Typography variant="h6" gutterBottom>
+              {`Hello, ${account.primaryEmailAddress}`}
+            </Typography>
+          </div>}
+          {!authStore.isAuthenticated && <div className={classes.loginWrapper}>
             <Typography variant="h6" gutterBottom>
               Returning Customer
             </Typography>
-            <Button onClick={onLoginButtonClick} actionType="important" isFullWidth className={classes.loginButton}>
+            <Button title={'Login'} onClick={onLoginButtonClick} actionType="important" isFullWidth className={classes.loginButton}>
               Login
             </Button>
-            <Button onClick={onRegisterButtonClick} actionType="secondary" isFullWidth className={classes.loginButton}>
+            <span className={classes.buttonTop}>
+            <Button title={'Create a new account'} onClick={onRegisterButtonClick} actionType="secondary" isFullWidth className={classes.loginButton}>
               Create a new account
             </Button>
-          </div>
+              </span>
+          </div>}
         </Grid>
         <Grid item xs={12} md={5}>
           <div className={classes.guestWrapper}>

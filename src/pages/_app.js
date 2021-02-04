@@ -1,12 +1,12 @@
-import NextApp, { Container } from "next/app";
+import NextApp, {Container} from "next/app";
 import React from "react";
-import { ThemeProvider as RuiThemeProvider } from "styled-components";
-import { StripeProvider } from "react-stripe-elements";
-import { MuiThemeProvider } from "@material-ui/core/styles";
+import {ThemeProvider as RuiThemeProvider} from "styled-components";
+import {StripeProvider} from "react-stripe-elements";
+import {MuiThemeProvider} from "@material-ui/core/styles";
 import CssBaseline from "@material-ui/core/CssBaseline";
 import JssProvider from "react-jss/lib/JssProvider";
-import { Provider as MobxProvider } from "mobx-react";
-import { ComponentsProvider } from "@reactioncommerce/components-context";
+import {Provider as MobxProvider} from "mobx-react";
+import {ComponentsProvider} from "@reactioncommerce/components-context";
 import getConfig from "next/config";
 import track from "lib/tracking/track";
 import dispatch from "lib/tracking/dispatch";
@@ -21,15 +21,15 @@ import components from "../custom/componentsContext";
 import componentTheme from "../custom/componentTheme";
 import getAllTags from "../lib/data/getAllTags";
 
-const { publicRuntimeConfig } = getConfig();
+const {publicRuntimeConfig} = getConfig();
 
 @withApolloClient
 @withMobX
 @withShop
 @withViewer
-@track({}, { dispatch })
+@track({}, {dispatch})
 export default class App extends NextApp {
-  static async getInitialProps({ Component, ctx }) {
+  static async getInitialProps({Component, ctx}) {
     let pageProps = {};
 
     if (Component.getInitialProps) {
@@ -45,18 +45,19 @@ export default class App extends NextApp {
     // to #2, we can move this to only where tags are needed, or inside their own `withTags` container
     const tags = await getAllTags(ctx.apolloClient);
 
-    return { pageProps, tags };
+    return {pageProps, tags};
   }
 
   constructor(props) {
     super(props);
     this.pageContext = getPageContext();
-    this.state = { stripe: null };
+    this.state = {stripe: null};
   }
 
   pageContext = null;
 
   componentDidMount() {
+    const {router} = this.props;
     // Fetch and update auth token in auth store
     rootMobXStores.cartStore.setAnonymousCartCredentialsFromLocalStorage();
 
@@ -66,17 +67,20 @@ export default class App extends NextApp {
       jssStyles.parentNode.removeChild(jssStyles);
     }
 
-    const { stripePublicApiKey } = publicRuntimeConfig;
+    const {stripePublicApiKey} = publicRuntimeConfig;
     if (stripePublicApiKey && window.Stripe) {
       // eslint-disable-next-line react/no-did-mount-set-state
-      this.setState({ stripe: window.Stripe(stripePublicApiKey) });
+      this.setState({stripe: window.Stripe(stripePublicApiKey)});
     }
+    router.events.on('routeChangeComplete', () => {
+      window.scrollTo(0, 0);
+    });
   }
 
   render() {
-    const { Component, pageProps, shop, tags, viewer, ...rest } = this.props;
-    const { route } = this.props.router;
-    const { stripe } = this.state;
+    const {Component, pageProps, shop, tags, viewer, ...rest} = this.props;
+    const {route} = this.props.router;
+    const {stripe} = this.state;
 
     return (
       <Container>
@@ -88,7 +92,7 @@ export default class App extends NextApp {
             >
               <RuiThemeProvider theme={componentTheme}>
                 <MuiThemeProvider theme={this.pageContext.theme} sheetsManager={this.pageContext.sheetsManager}>
-                  <CssBaseline />
+                  <CssBaseline/>
                   {route === "/checkout" || route === "/login" ? (
                     <StripeProvider stripe={stripe}>
                       <Component pageContext={this.pageContext} shop={shop} {...rest} {...pageProps} />

@@ -59,8 +59,10 @@ class Header extends Component {
   };
 
   render() {
-    const { classes: { appBar, controls, toolbar, title }, shop } = this.props;
+    const { classes: { appBar, controls, toolbar, title }, shop, authStore } = this.props;
+    const { account } = authStore;
 
+    console.log(authStore);
     return (
       <AppBar position="static" elevation={0} className={appBar}>
         <Toolbar className={toolbar}>
